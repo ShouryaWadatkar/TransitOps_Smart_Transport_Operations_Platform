@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { useData } from '../../context/DataContext';
 
-export function MaintenanceForm({ onSubmit, initialData = {}, onCancel }) {
+export function MaintenanceForm({ onSubmit, onCancel }) {
+  const { vehicles } = useData();
+  const availableVehicles = vehicles.filter(v => v.status !== 'Retired');
+
   const [formData, setFormData] = useState({
-    vehicleId: initialData.vehicleId || '',
-    serviceDate: initialData.serviceDate || '',
-    description: initialData.description || '',
-    cost: initialData.cost || '',
+    vehicleId: '',
+    serviceDate: '',
+    description: '',
+    cost: '',
   });
 
   const handleSubmit = (e) => {
@@ -22,8 +26,20 @@ export function MaintenanceForm({ onSubmit, initialData = {}, onCancel }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <label className="text-sm font-medium">Vehicle ID</label>
-        <Input name="vehicleId" value={formData.vehicleId} onChange={handleChange} required />
+        <label className="text-sm font-medium">Vehicle</label>
+        <select 
+          name="vehicleId" 
+          value={formData.vehicleId} 
+          onChange={handleChange} 
+          required
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <option value="">Select a Vehicle</option>
+          {availableVehicles.map(v => (
+            <option key={v.id} value={v.id}>{v.registrationNumber} - {v.make} {v.model}</option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">Adding maintenance will set the vehicle to "In Shop" automatically.</p>
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium">Service Date</label>

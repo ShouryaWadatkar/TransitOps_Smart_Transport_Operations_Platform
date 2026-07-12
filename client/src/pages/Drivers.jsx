@@ -6,15 +6,11 @@ import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
 import { DriverForm } from '../components/forms/DriverForm';
 import { Search } from '../components/ui/Search';
+import { useData } from '../context/DataContext';
 import toast from 'react-hot-toast';
 
-const MOCK_DRIVERS = [
-  { id: 'D-001', name: 'John Doe', licenseNumber: 'DL123456', phone: '(555) 123-4567', status: 'Active' },
-  { id: 'D-002', name: 'Jane Smith', licenseNumber: 'DL987654', phone: '(555) 987-6543', status: 'On Leave' },
-];
-
 export function Drivers() {
-  const [drivers, setDrivers] = useState(MOCK_DRIVERS);
+  const { drivers, addDriver } = useData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -23,16 +19,25 @@ export function Drivers() {
   );
 
   const handleAddDriver = (data) => {
-    const newDriver = { ...data, id: `D-00${drivers.length + 1}` };
-    setDrivers([...drivers, newDriver]);
+    addDriver(data);
     setIsModalOpen(false);
     toast.success('Driver added successfully');
+  };
+
+  const getStatusVariant = (status) => {
+    switch (status) {
+      case 'Available': return 'success';
+      case 'On Trip': return 'primary';
+      case 'Off Duty': return 'secondary';
+      case 'Suspended': return 'destructive';
+      default: return 'default';
+    }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Drivers</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Driver Management</h2>
         <Button onClick={() => setIsModalOpen(true)}>Add Driver</Button>
       </div>
 
@@ -49,10 +54,12 @@ export function Drivers() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead>License Number</TableHead>
-                <TableHead>Phone</TableHead>
+                <TableHead>License No.</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Expiry</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Safety Score</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -60,12 +67,14 @@ export function Drivers() {
             <TableBody>
               {filteredDrivers.map((driver) => (
                 <TableRow key={driver.id}>
-                  <TableCell className="font-medium">{driver.id}</TableCell>
-                  <TableCell>{driver.name}</TableCell>
+                  <TableCell className="font-medium">{driver.name}</TableCell>
                   <TableCell>{driver.licenseNumber}</TableCell>
+                  <TableCell>{driver.licenseCategory}</TableCell>
+                  <TableCell>{new Date(driver.licenseExpiry).toLocaleDateString()}</TableCell>
                   <TableCell>{driver.phone}</TableCell>
+                  <TableCell>{driver.safetyScore}/100</TableCell>
                   <TableCell>
-                    <Badge variant={driver.status === 'Active' ? 'success' : 'secondary'}>
+                    <Badge variant={getStatusVariant(driver.status)}>
                       {driver.status}
                     </Badge>
                   </TableCell>

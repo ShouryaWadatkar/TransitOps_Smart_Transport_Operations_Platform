@@ -10,7 +10,15 @@ const data = [
   },
 ];
 
-export function FleetUtilizationGauge() {
+export function FleetUtilizationGauge({ value = 78 }) {
+  const chartData = [
+    {
+      name: 'Utilization',
+      value: value,
+      fill: 'hsl(var(--primary))',
+    },
+  ];
+
   return (
     <Card>
       <CardHeader>
@@ -26,7 +34,7 @@ export function FleetUtilizationGauge() {
               innerRadius="80%"
               outerRadius="100%"
               barSize={20}
-              data={data}
+              data={chartData}
               startAngle={180}
               endAngle={0}
             >
@@ -41,7 +49,7 @@ export function FleetUtilizationGauge() {
             </RadialBarChart>
           </ResponsiveContainer>
           <div className="absolute flex flex-col items-center justify-center text-center mt-8">
-            <span className="text-4xl font-bold text-primary">{data[0].value}%</span>
+            <span className="text-4xl font-bold text-primary">{chartData[0].value}%</span>
             <span className="text-sm text-muted-foreground">Optimal</span>
           </div>
         </div>

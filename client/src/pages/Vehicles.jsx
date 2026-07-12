@@ -6,15 +6,11 @@ import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
 import { VehicleForm } from '../components/forms/VehicleForm';
 import { Search } from '../components/ui/Search';
+import { useData } from '../context/DataContext';
 import toast from 'react-hot-toast';
 
-const MOCK_VEHICLES = [
-  { id: 'V-001', make: 'Ford', model: 'Transit', year: 2021, licensePlate: 'ABC-123', status: 'Active' },
-  { id: 'V-002', make: 'Mercedes', model: 'Sprinter', year: 2022, licensePlate: 'XYZ-987', status: 'Maintenance' },
-];
-
 export function Vehicles() {
-  const [vehicles, setVehicles] = useState(MOCK_VEHICLES);
+  const { vehicles, addVehicle } = useData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -23,16 +19,29 @@ export function Vehicles() {
   );
 
   const handleAddVehicle = (data) => {
-    const newVehicle = { ...data, id: `V-00${vehicles.length + 1}` };
-    setVehicles([...vehicles, newVehicle]);
+    if (vehicles.some(v => v.registrationNumber === data.registrationNumber)) {
+      toast.error('Registration number must be unique');
+      return;
+    }
+    addVehicle(data);
     setIsModalOpen(false);
     toast.success('Vehicle added successfully');
+  };
+
+  const getStatusVariant = (status) => {
+    switch (status) {
+      case 'Available': return 'success';
+      case 'On Trip': return 'primary';
+      case 'In Shop': return 'warning';
+      case 'Retired': return 'destructive';
+      default: return 'default';
+    }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Vehicles</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Vehicle Registry</h2>
         <Button onClick={() => setIsModalOpen(true)}>Add Vehicle</Button>
       </div>
 
@@ -49,11 +58,11 @@ export function Vehicles() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Make</TableHead>
-                <TableHead>Model</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>License Plate</TableHead>
+                <TableHead>Reg. No</TableHead>
+                <TableHead>Vehicle</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Odometer</TableHead>
+                <TableHead>Max Load</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -61,13 +70,13 @@ export function Vehicles() {
             <TableBody>
               {filteredVehicles.map((vehicle) => (
                 <TableRow key={vehicle.id}>
-                  <TableCell className="font-medium">{vehicle.id}</TableCell>
-                  <TableCell>{vehicle.make}</TableCell>
-                  <TableCell>{vehicle.model}</TableCell>
-                  <TableCell>{vehicle.year}</TableCell>
-                  <TableCell>{vehicle.licensePlate}</TableCell>
+                  <TableCell className="font-medium">{vehicle.registrationNumber}</TableCell>
+                  <TableCell>{vehicle.make} {vehicle.model}</TableCell>
+                  <TableCell>{vehicle.type}</TableCell>
+                  <TableCell>{vehicle.odometer} km</TableCell>
+                  <TableCell>{vehicle.maxLoad} kg</TableCell>
                   <TableCell>
-                    <Badge variant={vehicle.status === 'Active' ? 'success' : 'warning'}>
+                    <Badge variant={getStatusVariant(vehicle.status)}>
                       {vehicle.status}
                     </Badge>
                   </TableCell>

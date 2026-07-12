@@ -2,30 +2,34 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table';
+import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
 import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { Search } from '../components/ui/Search';
+import { useData } from '../context/DataContext';
 import toast from 'react-hot-toast';
 
-const MOCK_LOGS = [
-  { id: 'M-1', vehicleId: 'V-001', serviceDate: '2023-10-20', description: 'Oil Change', cost: 150.0 },
-  { id: 'M-2', vehicleId: 'V-002', serviceDate: '2023-10-22', description: 'Tire Replacement', cost: 800.0 },
-];
-
 export function Maintenance() {
-  const [logs, setLogs] = useState(MOCK_LOGS);
+  const { maintenance, addMaintenance, closeMaintenance, vehicles } = useData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredLogs = logs.filter((l) =>
-    Object.values(l).join(' ').toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredMaintenance = maintenance.filter((m) =>
+    Object.values(m).join(' ').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddLog = (data) => {
-    const newLog = { ...data, id: `M-${logs.length + 1}` };
-    setLogs([...logs, newLog]);
+  const handleAddMaintenance = (data) => {
+    addMaintenance({
+      ...data,
+      cost: parseFloat(data.cost)
+    });
     setIsModalOpen(false);
-    toast.success('Maintenance log added');
+    toast.success('Maintenance logged and vehicle set to In Shop');
+  };
+
+  const handleClose = (id) => {
+    closeMaintenance(id);
+    toast.success('Maintenance closed and vehicle status restored');
   };
 
   return (
@@ -40,7 +44,7 @@ export function Maintenance() {
           <div className="flex items-center justify-between">
             <CardTitle>Service History</CardTitle>
             <div className="w-72">
-              <Search onSearch={setSearchTerm} placeholder="Search logs..." />
+              <Search onSearch={setSearchTerm} placeholder="Search records..." />
             </div>
           </div>
         </CardHeader>
@@ -48,30 +52,54 @@ export function Maintenance() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Log ID</TableHead>
+                <TableHead>Service ID</TableHead>
                 <TableHead>Vehicle</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead className="text-right">Cost</TableHead>
+                <TableHead>Cost</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredLogs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="font-medium">{log.id}</TableCell>
-                  <TableCell>{log.vehicleId}</TableCell>
-                  <TableCell>{new Date(log.serviceDate).toLocaleDateString()}</TableCell>
-                  <TableCell>{log.description}</TableCell>
-                  <TableCell className="text-right">${Number(log.cost).toFixed(2)}</TableCell>
+              {filteredMaintenance.map((record) => {
+                const vehicle = vehicles.find(v => v.id === record.vehicleId);
+                return (
+                  <TableRow key={record.id}>
+                    <TableCell className="font-medium">{record.id}</TableCell>
+                    <TableCell>{vehicle?.registrationNumber || record.vehicleId}</TableCell>
+                    <TableCell>{new Date(record.serviceDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{record.description}</TableCell>
+                    <TableCell>${Number(record.cost).toFixed(2)}</TableCell>
+                    <TableCell>
+                      <Badge variant={record.status === 'Open' ? 'warning' : 'secondary'}>
+                        {record.status || 'Closed'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {record.status === 'Open' && (
+                        <Button variant="outline" size="sm" onClick={() => handleClose(record.id)}>
+                          Close
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {filteredMaintenance.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center">
+                    No results.
+                  </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Maintenance">
-        <MaintenanceForm onSubmit={handleAddLog} onCancel={() => setIsModalOpen(false)} />
+        <MaintenanceForm onSubmit={handleAddMaintenance} onCancel={() => setIsModalOpen(false)} />
       </Modal>
     </div>
   );
