@@ -1,95 +1,67 @@
-import React, { useState } from 'react';
-import { Save, Shield } from 'lucide-react';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import toast from 'react-hot-toast';
 
-const Settings = () => {
-  const roles = ['Admin', 'Manager', 'Dispatcher', 'Driver'];
-  
-  const [permissions, setPermissions] = useState([
-    { resource: 'Dashboard', admin: true, manager: true, dispatcher: true, driver: false },
-    { resource: 'Vehicles', admin: true, manager: true, dispatcher: true, driver: false },
-    { resource: 'Drivers', admin: true, manager: true, dispatcher: true, driver: false },
-    { resource: 'Trips', admin: true, manager: true, dispatcher: true, driver: true },
-    { resource: 'Maintenance', admin: true, manager: true, dispatcher: false, driver: false },
-    { resource: 'Fuel & Expenses', admin: true, manager: true, dispatcher: false, driver: true },
-    { resource: 'Reports', admin: true, manager: true, dispatcher: false, driver: false },
-    { resource: 'Settings', admin: true, manager: false, dispatcher: false, driver: false },
-  ]);
-
-  const togglePermission = (index, role) => {
-    const newPermissions = [...permissions];
-    newPermissions[index][role.toLowerCase()] = !newPermissions[index][role.toLowerCase()];
-    setPermissions(newPermissions);
-  };
-
-  const handleSave = () => {
-    // Ideally this would make a PUT/POST request to a settings/roles API
-    alert('Permissions saved successfully!');
+export function Settings() {
+  const handleSave = (e) => {
+    e.preventDefault();
+    toast.success('Settings saved successfully');
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Settings</h1>
-          <p className="text-gray-500 mt-1">Manage system configurations and access control.</p>
-        </div>
-        <button 
-          onClick={handleSave}
-          className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700"
-        >
-          <Save size={18} className="mr-2" />
-          Save Changes
-        </button>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
+        <p className="text-muted-foreground">Manage your account and organization settings.</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center bg-gray-50">
-          <Shield className="text-indigo-600 mr-2" size={20} />
-          <h2 className="text-lg font-semibold text-gray-800">RBAC Permission Matrix</h2>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-6 py-3 border-b border-gray-200 text-gray-600 font-semibold text-sm">Resource / Module</th>
-                {roles.map(role => (
-                  <th key={role} className="px-6 py-3 border-b border-gray-200 text-gray-600 font-semibold text-sm text-center">
-                    {role}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {permissions.map((perm, idx) => (
-                <tr key={perm.resource} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 border-b border-gray-200 text-sm font-medium text-gray-700">
-                    {perm.resource}
-                  </td>
-                  {roles.map(role => {
-                    const roleKey = role.toLowerCase();
-                    return (
-                      <td key={roleKey} className="px-6 py-4 border-b border-gray-200 text-center">
-                        <label className="inline-flex items-center cursor-pointer">
-                          <input 
-                            type="checkbox" 
-                            className="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 transition duration-150 ease-in-out cursor-pointer"
-                            checked={perm[roleKey]}
-                            onChange={() => togglePermission(idx, role)}
-                            disabled={role === 'Admin'} // Admin always has full access
-                          />
-                        </label>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile Profile</CardTitle>
+            <CardDescription>Update your personal information.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSave} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Full Name</label>
+                <Input defaultValue="Admin User" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Email</label>
+                <Input type="email" defaultValue="admin@transitops.com" />
+              </div>
+              <Button type="submit">Save Changes</Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Organization Details</CardTitle>
+            <CardDescription>Update company settings and preferences.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSave} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Company Name</label>
+                <Input defaultValue="TransitOps Global" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Currency</label>
+                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
+              </div>
+              <Button type="submit">Update Organization</Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
-};
-
-export default Settings;
+}
