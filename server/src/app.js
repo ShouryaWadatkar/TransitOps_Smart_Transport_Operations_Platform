@@ -1,8 +1,14 @@
 import express from 'express';
 import cors from 'cors';
-import authRoutes from './routes/authRoutes.js';
-import roleRoutes from './routes/roleRoutes.js';
-import errorMiddleware from './middlewares/errorMiddleware.js';
+import authRoutes        from './routes/authRoutes.js';
+import roleRoutes        from './routes/roleRoutes.js';
+import vehicleRoutes     from './routes/vehicleRoutes.js';
+import driverRoutes      from './routes/driverRoutes.js';
+import tripRoutes        from './routes/tripRoutes.js';
+import maintenanceRoutes from './routes/maintenanceRoutes.js';
+import fuelRoutes        from './routes/fuelRoutes.js';
+import expenseRoutes     from './routes/expenseRoutes.js';
+import errorMiddleware   from './middlewares/errorMiddleware.js';
 import { NotFoundError } from './utils/errorHandler.js';
 
 const app = express();
@@ -25,9 +31,21 @@ app.get('/health', (req, res) => {
   });
 });
 
+// ─────────────────────────────────────────────
 // Mount modular routes
-app.use('/api/auth', authRoutes);
+// ─────────────────────────────────────────────
+
+// Auth & Roles
+app.use('/api/auth',  authRoutes);
 app.use('/api/roles', roleRoutes);
+
+// Core fleet management APIs
+app.use('/api/vehicles',    vehicleRoutes);
+app.use('/api/drivers',     driverRoutes);
+app.use('/api/trips',       tripRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/fuel',        fuelRoutes);
+app.use('/api/expenses',    expenseRoutes);
 
 // Fallback: 404 handler for unmatched routes
 app.all('*', (req, res, next) => {
